@@ -54,7 +54,7 @@
 		<dependency>
 			<groupId>com.baomidou</groupId>
 			<artifactId>mybatis-plus-boot-starter</artifactId>
-			<version>3.3.1</version>
+			<version>3.5.1</version>
 		</dependency>
 		<!-- 引入阿里数据库连接池 -->
 		<dependency>
@@ -66,7 +66,8 @@
 		<dependency>
 			<groupId>com.baomidou</groupId>
 			<artifactId>mybatis-plus-generator</artifactId>
-			<version>3.3.1.tmp</version>
+			<version>3.5.1</version>
+			<scope>compile</scope>
 		</dependency>
 		<!-- mybatisPlus Velocity 模版引擎 -->
 		<dependency>

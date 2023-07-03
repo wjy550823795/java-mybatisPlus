@@ -1,139 +1,91 @@
 package com.config;
-import com.baomidou.mybatisplus.core.exceptions.MybatisPlusException;
-//import com.baomidou.mybatisplus.core.toolkit.StringPool;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
-import com.baomidou.mybatisplus.generator.AutoGenerator;
-import com.baomidou.mybatisplus.generator.InjectionConfig;
-import com.baomidou.mybatisplus.generator.config.*;
-//import com.baomidou.mybatisplus.generator.config.po.TableInfo;
-import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
-import com.baomidou.mybatisplus.generator.engine.FreemarkerTemplateEngine;
-//
-//import java.util.ArrayList;
-//import java.util.List;
-import java.util.Scanner;
 
-/**
- * @Description: 代码生成器
- * @Author: jinhaoxun
- * @Date: 2020/2/13 上午10:06
- * @Version: 1.0.0
- */
-// 演示例子，执行 main 方法控制台输入模块表名回车自动生成对应项目目录中
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.generator.FastAutoGenerator;
+import com.baomidou.mybatisplus.generator.config.OutputFile;
+import com.baomidou.mybatisplus.generator.config.po.TableInfo;
+import com.baomidou.mybatisplus.generator.config.rules.DateType;
+import com.baomidou.mybatisplus.generator.engine.VelocityTemplateEngine;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 public class CodeGenerator {
+    public static void main(String[] args) {
+//        FastAutoGenerator.create("jdbc:postgresql://192.168.3.82:5432/postgres", "postgres", "password")
+        FastAutoGenerator.create("jdbc:postgresql://116.204.118.96:5432/haha_idp_dev", "postgres", "password")
+            .globalConfig(builder -> {
+                builder.author("wjy") // 设置作者
+                    .enableSwagger() // 开启 swagger 模式
+                    .fileOverride() // 覆盖已生成文件
+                    .dateType(DateType.ONLY_DATE)
+                    .commentDate("yyyy-MM-dd HH:mm:ss")
+                    .outputDir("D:\\localRepository"); // 指定输出目录
+            })
+            .packageConfig(builder -> {
+                builder.parent("com.haha.idp.bussiness.develop") // 设置父包名
+                    .moduleName("server") // 设置父包模块名
+//                            .other("dto")
+                    .pathInfo(Collections.singletonMap(OutputFile.mapperXml, "/home/sugang/Documents/out")); // 设置mapperXml生成路径
+            })
+            .templateConfig(
+                builder -> {
+                    builder.entity("/templates/entity.java")
+                        .service("/templates/service.java")
+                        .serviceImpl("/templates/serviceImpl.java")
+                        .mapper("/templates/mapper.java")
+                        .mapperXml("/templates/mapper.xml")
+                        .controller("/templates/controller.java");
+                }
+                           )
+            .injectionConfig(builder -> {
+                Map<String , Object> map = new HashMap<>();
+                Map<String , String> map2 = new HashMap<>();
+                map2.put("VO.java", "/templates/vo.java.vm");
+                map2.put("DTO.java", "/templates/dto.java.vm");
+                builder.beforeOutputFile((tableInfo, objectMap) -> {
+                    map.put("entityName", tableInfo.getEntityName());
+                })
+                    .customMap(map)
+                    .customFile(map2);
+            })
+            .strategyConfig(builder -> {
+                builder .addInclude("dev_feature_schedule", "dev_feature_schedule_target")
+//                            .addInclude("api_tenant_rule","api_basic_info","api_basic_request",
+//                                    "api_basic_response","api_basic_type","api_error_info","api_config",
+//                                    "api_tenant_config","api_application","api_log","api_bill") // 设置需要生成的表名,注释这一行就是生成当前数据库下所有表
+//                            .addTablePrefix("sys_", "biz_", "api_","gov_","dev_")// 设置过滤表前缀
+                    .entityBuilder()
+                    .enableLombok()
+                    .enableTableFieldAnnotation()
+//                            .logicDeleteColumnName("is_del")//逻辑删除字段名(数据库)
+//                            .logicDeletePropertyName("deleteFlag")//逻辑删除属性名(实体)
+//                            .idType(IdType.AUTO)//主键类型
+//                            .superClass(BaseEntity.class)
+//                            .addSuperEntityColumns("id", "create_id", "create_time", "update_id", "update_time")
+//                            .addTableFills(new Column("create_time", FieldFill.INSERT))
+//                            .addTableFills(new Property("updateTime", FieldFill.INSERT_UPDATE))
+                    .controllerBuilder()
+                    .enableRestStyle()
+                    .superClass("com.haha.idp.framework.common.web.BaseController")
+                    .mapperBuilder()
+                    .enableMapperAnnotation();
 
-    /**
-     * <p>
-     * 读取控制台内容
-     * </p>
-     */
-    public static String scanner(String tip) {
-        Scanner scanner = new Scanner(System.in);
-        StringBuilder help = new StringBuilder();
-        help.append("请输入" + tip + "：");
-        System.out.println(help.toString());
-        if (scanner.hasNext()) {
-            String ipt = scanner.next();
-            if (StringUtils.isNotEmpty(ipt)) {
-                return ipt;
-            }
-        }
-        throw new MybatisPlusException("请输入正确的" + tip + "！");
+            })
+            .templateEngine(new MyTemplate()) // 使用Freemarker引擎模板，默认的是Velocity引擎模板
+            .execute();
     }
 
-    public static void main(String[] args) {
-        // 代码生成器
-        AutoGenerator mpg = new AutoGenerator();
-
-        // 全局配置
-        GlobalConfig gc = new GlobalConfig();
-        String projectPath = System.getProperty("user.dir");
-        gc.setOutputDir(projectPath + "/src/main/java");
-        gc.setAuthor("wangjunyu.5508");
-        gc.setOpen(false);
-        // gc.setSwagger2(true); 实体属性 Swagger2 注解
-        mpg.setGlobalConfig(gc);
-
-        // 数据源配置
-        DataSourceConfig dsc = new DataSourceConfig();
-        dsc.setUrl("jdbc:mysql://localhost:3306/cqcpeople?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC");
-        // dsc.setSchemaName("public");
-        dsc.setDriverName("com.mysql.cj.jdbc.Driver");
-        dsc.setUsername("root");
-        dsc.setPassword("123456Abc!");
-        mpg.setDataSource(dsc);
-
-        // 包配置
-        PackageConfig pc = new PackageConfig();
-        pc.setModuleName(scanner("模块名"));
-        pc.setParent("com");
-        mpg.setPackageInfo(pc);
-
-        // 自定义配置
-        InjectionConfig cfg = new InjectionConfig() {
-            @Override
-            public void initMap() {
-                // to do nothing
-            }
-        };
-
-        // 如果模板引擎是 freemarker
-//        String templatePath = "/templates/mapper.xml.ftl";
-//        // 如果模板引擎是 velocity
-//        // String templatePath = "/templates/mapper.xml.vm";
-//
-//        // 自定义输出配置
-//        List<FileOutConfig> focList = new ArrayList<>();
-//        // 自定义配置会被优先输出
-//        focList.add(new FileOutConfig(templatePath) {
-//            @Override
-//            public String outputFile(TableInfo tableInfo) {
-//                // 自定义输出文件名 ， 如果你 Entity 设置了前后缀、此处注意 xml 的名称会跟着发生变化！！
-//                return projectPath + "/src/main/resources/mapper/" + pc.getModuleName()
-//                        + "/" + tableInfo.getEntityName() + "Mapper" + StringPool.DOT_XML;
-//            }
-//        });
-        /*
-        cfg.setFileCreate(new IFileCreate() {
-            @Override
-            public boolean isCreate(ConfigBuilder configBuilder, FileType fileType, String filePath) {
-                // 判断自定义文件夹是否需要创建
-                checkDir("调用默认方法创建的目录");
-                return false;
-            }
-        });
-        */
-//        cfg.setFileOutConfigList(focList);
-//        mpg.setCfg(cfg);
-
-        // 配置模板
-//        TemplateConfig templateConfig = new TemplateConfig();
-
-        // 配置自定义输出模板
-        //指定自定义模板路径，注意不要带上.ftl/.vm, 会根据使用的模板引擎自动识别
-        // templateConfig.setEntity("templates/entity2.java");
-        // templateConfig.setService();
-        // templateConfig.setController();
-
-        // templateConfig.setXml(null);
-//        mpg.setTemplate(templateConfig);
-
-        // 策略配置
-        StrategyConfig strategy = new StrategyConfig();
-        strategy.setNaming(NamingStrategy.underline_to_camel);
-        strategy.setColumnNaming(NamingStrategy.underline_to_camel);
-        // strategy.setSuperEntityClass("你自己的父类实体,没有就不用设置!");
-        strategy.setEntityLombokModel(true);
-        strategy.setRestControllerStyle(true);
-        // 公共父类
-        // strategy.setSuperControllerClass("你自己的父类控制器,没有就不用设置!");
-        // 写于父类中的公共字段
-        // strategy.setSuperEntityColumns("id");
-        strategy.setInclude(scanner("表名，多个英文逗号分割").split(","));
-        strategy.setControllerMappingHyphenStyle(true);
-        strategy.setTablePrefix(pc.getModuleName() + "_");
-        mpg.setStrategy(strategy);
-        mpg.setTemplateEngine(new FreemarkerTemplateEngine());
-        mpg.execute();
+    static class MyTemplate extends VelocityTemplateEngine {
+        protected void outputCustomFile( Map<String, String> customFile, TableInfo tableInfo, Map<String, Object> objectMap) {
+            String entityName = tableInfo.getEntityName();
+            String otherPath = this.getPathInfo(OutputFile.other);
+            customFile.forEach((key, value) -> {
+                String fileName = String.format(otherPath + File.separator  + "%s", entityName+key);
+                this.outputFile(new File(fileName), objectMap, value);
+            });
+        }
     }
 }
